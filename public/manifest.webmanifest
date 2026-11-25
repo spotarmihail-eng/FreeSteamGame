@@ -1,0 +1,19 @@
+{
+  "name": "Free Steam Game",
+  "short_name": "FreeSteamGame",
+  "description": "Игровое сообщество, профили и коллекции карточек.",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090b12",
+  "theme_color": "#090b12",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
