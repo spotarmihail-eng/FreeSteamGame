@@ -61,6 +61,8 @@ export default function ProfilePage() {
   const [achievements, setAchievements] = useState<string[]>([]);
   const [textBlocks, setTextBlocks] = useState([{ title: "Обо мне", body: "" }]);
   const [avatarPreview, setAvatarPreview] = useState("");
+  const [backgroundImage, setBackgroundImage] = useState("");
+  const [mediaUploading, setMediaUploading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -78,6 +80,7 @@ export default function ProfilePage() {
         setBio(p.bio || ""); setCustomStatus(p.custom_status || "");
         const s = p.profile_settings || {};
         setBackground(String(s.background || "violet"));
+        setBackgroundImage(String(s.backgroundImage || ""));
         setShowcaseSlots(Number(s.showcaseSlots || 2));
         setFavoriteGames(Array.isArray(s.favoriteGames) ? s.favoriteGames as string[] : []);
         setAchievements(Array.isArray(s.achievements) ? s.achievements as string[] : []);
@@ -126,7 +129,7 @@ export default function ProfilePage() {
       comments_allowed: commentsAllowed,
       invisible,
       custom_status: customStatus.slice(0, 80),
-      profile_settings: { background, showcaseSlots, favoriteGames: favoriteGames.slice(0,5), achievements: achievements.slice(0,10), textBlocks: textBlocks.slice(0,3) }
+      profile_settings: { background, backgroundImage, showcaseSlots, favoriteGames: favoriteGames.slice(0,5), achievements: achievements.slice(0,10), textBlocks: textBlocks.slice(0,3) }
     };
     const { data, error } = await supabase.from("profiles").upsert(payload, { onConflict: "id" }).select("*").single();
     if (error) setMessage(error.code === "23505" ? "Этот адрес профиля уже занят. Выбери другой." : "Не удалось сохранить профиль: " + error.message);
@@ -134,14 +137,23 @@ export default function ProfilePage() {
     setSaving(false);
   }
 
-  function chooseAvatar(file?: File) {
-    if (!file) return;
-    if (!["image/png","image/jpeg","image/webp","image/gif"].includes(file.type) || file.size > 3 * 1024 * 1024) {
-      setMessage("Выбери PNG, JPG, WEBP или GIF размером до 3 МБ."); return;
+  async function uploadProfileImage(file: File | undefined, kind: "avatar" | "background") {
+    if (!file || !supabase || !user) return;
+    if (!["image/png","image/jpeg","image/webp","image/gif"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      setMessage("Выбери PNG, JPG, WEBP или GIF размером до 5 МБ."); return;
     }
-    const reader = new FileReader();
-    reader.onload = () => setAvatarPreview(String(reader.result || ""));
-    reader.readAsDataURL(file);
+    setMediaUploading(true); setMessage("");
+    const extension = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "img";
+    const path = `${user.id}/${kind}-${Date.now()}.${extension}`;
+    const { error } = await supabase.storage.from("profile-media").upload(path, file, { upsert: true, contentType: file.type });
+    if (error) setMessage("Не удалось загрузить изображение. Проверь, применена ли миграция 0003: " + error.message);
+    else {
+      const { data } = supabase.storage.from("profile-media").getPublicUrl(path);
+      if (kind === "avatar") setAvatarPreview(data.publicUrl);
+      else setBackgroundImage(data.publicUrl);
+      setMessage("Изображение загружено. Не забудь сохранить профиль.");
+    }
+    setMediaUploading(false);
   }
 
   if (loading) return <main className="profile-page"><div className="profile-loading">Загружаем профиль…</div></main>;
@@ -152,7 +164,7 @@ export default function ProfilePage() {
       <header className="profile-top"><a href={`${basePath}/`} className="profile-brand"><span>F</span> FREE STEAM <b>GAME</b></a><nav><a href={`${basePath}/`}>Главная</a><a href="#showcases">Витрины</a><button onClick={() => setEditing(!editing)}>{editing ? "Закрыть редактор" : "Настроить профиль"}</button></nav></header>
       <div className="profile-content">
         <div className="profile-heading"><div><span className="profile-kicker">ИГРОВОЙ ПРОФИЛЬ</span><h1>{displayName || "Игрок"}</h1><p>Твоя страница в сообществе Free Steam Game</p></div><div className="profile-actions"><button className="profile-secondary" onClick={() => setPreview(!preview)}>{preview ? "Вернуться к профилю" : "Предпросмотр"}</button><button className="profile-primary" onClick={saveProfile} disabled={saving}>{saving ? "Сохраняем…" : "Сохранить"}</button></div></div>
-        <section className="profile-hero" style={{background: selectedBackground.style}}>
+        <section className="profile-hero" style={backgroundImage ? { backgroundImage: `linear-gradient(90deg,rgba(8,7,15,.82),rgba(8,7,15,.18)),url("${backgroundImage}")`, backgroundSize: "cover", backgroundPosition: "center" } : {background: selectedBackground.style}}>
           <div className="profile-hero-overlay" />
           <div className="profile-avatar-wrap">{avatarPreview ? <img src={avatarPreview} alt="Аватар профиля" /> : <span>{(displayName || "И").slice(0,1).toUpperCase()}</span>}</div>
           <div className="profile-identity"><span className="profile-online"><i /> {invisible ? "Невидимка" : "В сети"}</span><h2>{displayName || "Игрок"}</h2><p>{customStatus || "Добро пожаловать в мой профиль FSG"}</p><small>Уровень {level.level} · {level.current} / {level.next} XP</small></div>
@@ -165,10 +177,10 @@ export default function ProfilePage() {
             <label>Уникальный адрес /u/<input value={slug} maxLength={24} onChange={(e)=>setSlug(slugFrom(e.target.value))} /></label>
             <label className="profile-wide">Описание<textarea value={bio} maxLength={500} onChange={(e)=>setBio(e.target.value)} placeholder="Расскажи немного о себе…" /></label>
             <label className="profile-wide">Собственный статус<input value={customStatus} maxLength={80} onChange={(e)=>setCustomStatus(e.target.value)} placeholder="Например: Играю в любимую игру" /></label>
-            <label>Аватар (PNG/JPG/WEBP/GIF, до 3 МБ)<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(e)=>chooseAvatar(e.target.files?.[0])} /></label>
+            <label>Аватар (PNG/JPG/WEBP/GIF, до 5 МБ)<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" disabled={mediaUploading} onChange={(e)=>void uploadProfileImage(e.target.files?.[0], "avatar")} /></label>
             <label>Видимость профиля<select value={privacy} onChange={(e)=>setPrivacy(e.target.value)}><option value="public">Открытый</option><option value="private">Приватный</option></select></label>
           </div>
-          <div className="profile-editor-group"><h3>Фон профиля</h3><div className="profile-backgrounds">{backgrounds.map((item)=><button key={item.id} className={background===item.id?"selected":""} style={{background:item.style}} onClick={()=>setBackground(item.id)}>{item.name}</button>)}</div><p className="profile-muted">Это стартовые варианты. Загрузка пользовательских фонов и анимированные темы будут подключены отдельным этапом.</p></div>
+          <div className="profile-editor-group"><h3>Фон профиля</h3><div className="profile-backgrounds">{backgrounds.map((item)=><button key={item.id} className={background===item.id?"selected":""} style={{background:item.style}} onClick={()=>setBackground(item.id)}>{item.name}</button>)}</div><label className="profile-upload-background">Загрузить собственный фон (до 5 МБ)<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" disabled={mediaUploading} onChange={(e)=>void uploadProfileImage(e.target.files?.[0], "background")} /></label><p className="profile-muted">Можно выбрать готовый фон или загрузить собственное изображение. Анимированные темы и эффекты будут добавлены отдельным этапом.</p></div>
           <div className="profile-editor-group"><h3>Приватность и отображение</h3><div className="profile-toggles">
             <label><input type="checkbox" checked={showLevel} onChange={e=>setShowLevel(e.target.checked)}/> Показывать уровень</label>
             <label><input type="checkbox" checked={showExperience} onChange={e=>setShowExperience(e.target.checked)}/> Показывать шкалу опыта</label>
@@ -182,7 +194,7 @@ export default function ProfilePage() {
             <div className="profile-form-grid"><label>Любимые игры (до 5, названия через запятую)<input value={favoriteGames.join(", ")} onChange={e=>setFavoriteGames(e.target.value.split(",").map(v=>v.trim()).filter(Boolean).slice(0,5))} placeholder="Dota 2, Warframe…" /></label><label>Достижения (до 10, названия через запятую)<input value={achievements.join(", ")} onChange={e=>setAchievements(e.target.value.split(",").map(v=>v.trim()).filter(Boolean).slice(0,10))} placeholder="Первый значок, Коллекционер…" /></label></div>
             <h3>Свои текстовые блоки (до 3)</h3>{textBlocks.map((block,index)=><div className="profile-text-block" key={index}><input value={block.title} onChange={e=>setTextBlocks(old=>old.map((v,i)=>i===index?{...v,title:e.target.value}:v))} placeholder="Заголовок" /><textarea value={block.body} onChange={e=>setTextBlocks(old=>old.map((v,i)=>i===index?{...v,body:e.target.value}:v))} placeholder="Текст блока" /><button onClick={()=>setTextBlocks(old=>old.filter((_,i)=>i!==index))}>Удалить блок</button></div>)}{textBlocks.length<3?<button className="profile-secondary" onClick={()=>setTextBlocks(old=>[...old,{title:"Новый раздел",body:""}])}>+ Добавить текстовый блок</button>:null}
           </div>
-          <button className="profile-primary" onClick={saveProfile} disabled={saving}>{saving?"Сохраняем…":"Сохранить настройки"}</button>
+          <button className="profile-primary" onClick={saveProfile} disabled={saving || mediaUploading}>{saving?"Сохраняем…":mediaUploading?"Загружаем изображение…":"Сохранить настройки"}</button>
         </section> : null}
         <section id="showcases" className="profile-showcases"><div className="profile-section-title"><div><span className="profile-kicker">ТВОЯ КОЛЛЕКЦИЯ</span><h2>Витрины профиля</h2></div><span>{showcaseSlots} открытых слота</span></div>
           <div className="profile-showcase-grid">
