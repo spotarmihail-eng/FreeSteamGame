@@ -77,3 +77,15 @@ supabase db query --file supabase/seed.sql
 Alternatively, run the migration and seed SQL in the Supabase SQL Editor. Do not commit access tokens or database passwords.
 
 The schema creates the initial profile, game catalog, promotion, social, notification, moderation, chat, and **Free Steam Game-owned** collectible-card tables. Row Level Security is enabled. Sensitive operations such as card drops, trade acceptance, badge crafting, presence updates, invitations, and role changes intentionally have no direct client write policies; they must be implemented through validated server-side Edge Functions. This migration is a foundation, not a complete production backend.
+
+
+## Discord sign-in setup
+
+1. Create a Supabase project at https://supabase.com/dashboard.
+2. In Supabase → Authentication → URL Configuration, set the Site URL to `https://spotarmihail-eng.github.io/FreeSteamGame/` and add `https://spotarmihail-eng.github.io/FreeSteamGame/login/` plus `http://localhost:3000/login/` to Redirect URLs.
+3. In Supabase → Authentication → Providers → Discord, enable Discord and enter the Discord OAuth Client ID and Client Secret.
+4. In the Discord Developer Portal, add the Supabase-provided callback URL (format: `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`) as an OAuth2 redirect URL. This callback belongs to Supabase, not GitHub Pages.
+5. In GitHub → Settings → Secrets and variables → Actions → Variables, create `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` using the Project URL and publishable/anon key from Supabase.
+6. Rerun the Pages workflow. The login page will then have the public configuration it needs.
+
+Never add a Supabase service-role/secret key or Discord Client Secret to GitHub Actions variables, frontend environment variables, or browser code. The Discord Client Secret belongs only in the Supabase provider settings.
