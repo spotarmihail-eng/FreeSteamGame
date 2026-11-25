@@ -46,7 +46,7 @@ export default function HomePage() {
           <div className="side-label">ТВОЙ ПРОФИЛЬ</div>
           <div className="profile-mini">
             <div className="avatar-placeholder">G</div>
-            <div className="profile-mini-copy"><strong>Гость</strong><span>Войди, чтобы начать</span></div>
+            <div className="profile-mini-copy"><strong>Гость</strong><span><a href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/login/`}>Войти через Discord</a></span></div>
             <span className="status-dot" />
           </div>
           <p className="sidebar-note">Профили, друзья и коллекции появятся после подключения авторизации.</p>
@@ -58,7 +58,7 @@ export default function HomePage() {
           <div className="breadcrumbs"><span>Free Steam Game</span><i>/</i><strong>Обзор</strong></div>
           <div className="topbar-actions">
             <span className="preview-pill"><span /> РАННИЙ ПРЕДПРОСМОТР</span>
-            <span className="discord-soon">Discord вход · скоро</span>
+            <a className="discord-soon" href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/login/`}>Войти через Discord ↗</a>
           </div>
         </header>
 
