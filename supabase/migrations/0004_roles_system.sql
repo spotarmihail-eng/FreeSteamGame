@@ -20,14 +20,8 @@ alter table public.role_audit_log enable row level security;
 
 -- Users can read their own role. Owners/admins can read the role directory.
 drop policy if exists "Read own role or roles as staff" on public.user_roles;
-create policy "Read own role or roles as staff" on public.user_roles
-for select to authenticated using (
-  user_id = auth.uid()
-  or exists (
-    select 1 from public.user_roles me
-    where me.user_id = auth.uid() and me.role in ('admin','owner')
-  )
-);
+create policy "Read own role" on public.user_roles
+for select to authenticated using (user_id = auth.uid());
 
 -- Audit history is visible only to the owner.
 drop policy if exists "Owner reads role audit" on public.role_audit_log;
