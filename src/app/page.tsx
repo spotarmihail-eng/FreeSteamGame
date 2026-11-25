@@ -1,3 +1,5 @@
+import { AuthStatus } from "@/components/auth-status";
+
 const games = [
   { name: "Dota 2", genre: "MOBA · Экшен", appId: "570", initials: "D2", players: "Командная стратегия", color: "dota", label: "Популярная" },
   { name: "Team Fortress 2", genre: "Шутер · Командная", appId: "440", initials: "TF2", players: "Динамичные матчи", color: "tf2", label: "Классика" },
@@ -44,12 +46,7 @@ export default function HomePage() {
 
         <div className="sidebar-bottom">
           <div className="side-label">ТВОЙ ПРОФИЛЬ</div>
-          <div className="profile-mini">
-            <div className="avatar-placeholder">G</div>
-            <div className="profile-mini-copy"><strong>Гость</strong><span><a href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/login/`}>Войти через Discord</a></span></div>
-            <span className="status-dot" />
-          </div>
-          <p className="sidebar-note">Профили, друзья и коллекции появятся после подключения авторизации.</p>
+          <AuthStatus />
         </div>
       </aside>
 
@@ -58,7 +55,7 @@ export default function HomePage() {
           <div className="breadcrumbs"><span>Free Steam Game</span><i>/</i><strong>Обзор</strong></div>
           <div className="topbar-actions">
             <span className="preview-pill"><span /> РАННИЙ ПРЕДПРОСМОТР</span>
-            <a className="discord-soon" href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/login/`}>Войти через Discord ↗</a>
+            <AuthStatus compact />
           </div>
         </header>
 
