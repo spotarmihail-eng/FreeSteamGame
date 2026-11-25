@@ -213,3 +213,10 @@ a:focus-visible { outline: 2px solid #c4b5fd; outline-offset: 4px; border-radius
 .auth-signed-in { display: flex; align-items: center; gap: 11px; border: 1px solid rgba(170,145,220,.18); border-radius: 10px; padding: 12px; }.auth-avatar { display: grid; width: 37px; height: 37px; place-items: center; border-radius: 50%; background: #674c99; font-weight: 800; }.auth-signed-in > div:nth-child(2) { display: grid; flex: 1; gap: 4px; min-width: 0; }.auth-signed-in strong { overflow: hidden; text-overflow: ellipsis; font-size: 11px; }.auth-signed-in span { color: #9b91ab; font-size: 9px; }.auth-secondary { border: 1px solid rgba(255,255,255,.12); border-radius: 7px; background: transparent; color: #d8cbed; padding: 8px 10px; font: inherit; font-size: 10px; cursor: pointer; }
 .auth-error { margin: 12px 0 0; color: #ff9baf; font-size: 11px; line-height: 1.6; }.auth-footnote { margin-top: 19px; color: #a69bb4; font-size: 10px; line-height: 1.7; }.auth-legal { margin-top: 20px; border-top: 1px solid rgba(255,255,255,.07); padding-top: 15px; color: #756d80; font-size: 9px; line-height: 1.7; }
 @media(max-width:520px) { .auth-card { padding: 27px 22px; }.auth-eyebrow { margin-top: 35px; }.auth-back { left: 20px; } }
+
+
+/* Discord session indicator */
+.auth-status-avatar { object-fit: cover; }
+.auth-status-signout { margin: 7px 0 0 44px; padding: 3px 0; border: 0; background: transparent; color: #a99bc0; font: inherit; font-size: 10px; cursor: pointer; }
+.auth-status-signout:hover { color: #fff; }
+.auth-status-signout:disabled { opacity: .55; cursor: wait; }
