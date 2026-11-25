@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type StaffUser = {
@@ -56,7 +57,7 @@ export default function AdminPage() {
 
   return <main style={{minHeight:"100vh",background:"#090810",color:"#f5f2ff",padding:"32px clamp(16px,4vw,56px)",fontFamily:"Arial,sans-serif"}}>
     <div style={{maxWidth:1120,margin:"0 auto"}}>
-      <a href="/" style={{color:"#b9a2ff",textDecoration:"none"}}>← Вернуться в FSG</a>
+      <Link href="/" style={{color:"#b9a2ff",textDecoration:"none"}}>← Вернуться в FSG</Link>
       <header style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap",margin:"28px 0"}}>
         <div><div style={{color:"#b9a2ff",fontSize:11,fontWeight:800,letterSpacing:".16em"}}>FREE STEAM GAME · CONTROL CENTER</div><h1 style={{fontSize:"clamp(30px,5vw,46px)",margin:"10px 0"}}>Панель управления</h1><p style={{color:"#aaa2ba",margin:0}}>Пользователи, роли и контроль доступа</p></div>
         <div style={{border:"1px solid #443568",background:"#171126",borderRadius:12,padding:"12px 16px"}}><div style={{fontSize:10,color:"#aaa2ba"}}>ТВОЯ РОЛЬ</div><strong style={{color:"#c4b5fd"}}>{roleLabels[role as StaffUser["role"]] || role || "Проверка…"}</strong></div>
