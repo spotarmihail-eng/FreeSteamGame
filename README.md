@@ -54,3 +54,26 @@ These are requirements, not implemented features.
 ## Legal and safety
 
 Use permitted official Steam interfaces. Do not imitate Steam login, collect Steam passwords, distribute Steam keys, bypass Steam rules, or claim to launch arbitrary games in a browser.
+
+
+## Supabase database foundation
+
+The initial database schema is in `supabase/migrations/0001_initial_schema.sql`; the sample catalog is in `supabase/seed.sql`.
+
+To apply it to a Supabase project, install the Supabase CLI and link the project, then run:
+
+```bash
+supabase login
+supabase link --project-ref YOUR_PROJECT_REF
+supabase db push
+```
+
+To load the example game catalog after the migration:
+
+```bash
+supabase db query --file supabase/seed.sql
+```
+
+Alternatively, run the migration and seed SQL in the Supabase SQL Editor. Do not commit access tokens or database passwords.
+
+The schema creates the initial profile, game catalog, promotion, social, notification, moderation, chat, and **Free Steam Game-owned** collectible-card tables. Row Level Security is enabled. Sensitive operations such as card drops, trade acceptance, badge crafting, presence updates, invitations, and role changes intentionally have no direct client write policies; they must be implemented through validated server-side Edge Functions. This migration is a foundation, not a complete production backend.
