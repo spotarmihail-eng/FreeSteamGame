@@ -4,14 +4,14 @@
 
 create extension if not exists pgcrypto;
 
-create type public.app_role as enum ('user', 'moderator', 'admin', 'owner');
-create type public.presence_status as enum ('offline', 'online', 'in_game');
-create type public.friend_request_status as enum ('pending', 'accepted', 'declined', 'cancelled');
-create type public.library_status as enum ('owned', 'playing', 'completed', 'wishlist');
-create type public.promotion_status as enum ('upcoming', 'active', 'ended');
-create type public.notification_type as enum ('friend_request', 'friend_accepted', 'trade_offer', 'trade_update', 'game_invite', 'system');
-create type public.report_status as enum ('open', 'reviewing', 'resolved', 'dismissed');
-create type public.trade_status as enum ('pending', 'accepted', 'declined', 'cancelled', 'expired');
+do $ begin create type public.app_role as enum ('user', 'moderator', 'admin', 'owner'); exception when duplicate_object then null; end $;
+do $ begin create type public.presence_status as enum ('offline', 'online', 'in_game'); exception when duplicate_object then null; end $;
+do $ begin create type public.friend_request_status as enum ('pending', 'accepted', 'declined', 'cancelled'); exception when duplicate_object then null; end $;
+do $ begin create type public.library_status as enum ('owned', 'playing', 'completed', 'wishlist'); exception when duplicate_object then null; end $;
+do $ begin create type public.promotion_status as enum ('upcoming', 'active', 'ended'); exception when duplicate_object then null; end $;
+do $ begin create type public.notification_type as enum ('friend_request', 'friend_accepted', 'trade_offer', 'trade_update', 'game_invite', 'system'); exception when duplicate_object then null; end $;
+do $ begin create type public.report_status as enum ('open', 'reviewing', 'resolved', 'dismissed'); exception when duplicate_object then null; end $;
+do $ begin create type public.trade_status as enum ('pending', 'accepted', 'declined', 'cancelled', 'expired'); exception when duplicate_object then null; end $;
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
