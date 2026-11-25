@@ -11,7 +11,8 @@ const navItems = [
   { icon: "▦", label: "Каталог игр", href: "#games" },
   { icon: "▤", label: "Библиотека", href: "#library" },
   { icon: "✧", label: "Коллекции", href: "#collection" },
-  { icon: "♧", label: "Сообщество", href: "#community" }
+  { icon: "♧", label: "Сообщество", href: "#community" },
+  { icon: "◎", label: "Мой профиль", href: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/profile/` }
 ];
 
 const features = [
