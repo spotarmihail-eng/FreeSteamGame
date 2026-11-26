@@ -22,10 +22,20 @@ jobs:
         run: npm install
       - name: Build Windows installer
         run: npm run desktop:dist
+      - name: Verify installer
+        shell: pwsh
+        run: |
+          $installer = "dist/Free Steam Game Setup 0.1.0.exe"
+          if (!(Test-Path $installer)) {
+            Write-Error "Installer not found: $installer"
+            Get-ChildItem -Path dist -Recurse
+            exit 1
+          }
+          Get-Item $installer | Format-List FullName, Length
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: Free-Steam-Game-Windows-Installer
-          path: dist/*.exe
+          name: Free-Steam-Game-Setup
+          path: "dist/Free Steam Game Setup 0.1.0.exe"
           if-no-files-found: error
           retention-days: 30
