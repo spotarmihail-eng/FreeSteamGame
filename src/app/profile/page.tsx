@@ -53,7 +53,7 @@ function slugFrom(value: string) {
 
 export default function ProfilePage() {
   const supabase = getSupabaseBrowserClient();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);\n  const [isOwner, setIsOwner] = useState(false);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -85,21 +85,47 @@ export default function ProfilePage() {
   useEffect(() => {
     let active = true;
     async function load() {
-      if (!supabase) { setLoading(false); return; }
+      if (!supabase) { setMessage("Не удалось подключиться к Supabase."); setLoading(false); return; }
       const { data: auth } = await supabase.auth.getUser();
       if (!active) return;
       setUser(auth.user);
-      if (!auth.user) { setLoading(false); return; }
-      const { data, error: profileError } = await supabase.from("profiles").select("*").eq("id", auth.user.id).maybeSingle();
+
+      const requestedSlug = new URLSearchParams(window.location.search).get("u")?.trim().toLowerCase() || "";
+      let data: Record<string, unknown> | null = null;
+      let profileError: { message: string } | null = null;
+
+      if (requestedSlug) {
+        const bySlug = await supabase.from("profiles").select("*").eq("profile_slug", requestedSlug).maybeSingle();
+        if (bySlug.error) profileError = bySlug.error;
+        data = bySlug.data as Record<string, unknown> | null;
+        if (!data && !profileError) {
+          const byUsername = await supabase.from("profiles").select("*").eq("username", requestedSlug).maybeSingle();
+          if (byUsername.error) profileError = byUsername.error;
+          data = byUsername.data as Record<string, unknown> | null;
+        }
+        if (!data && !profileError && /^[a-z0-9_-]{3,24}$/.test(requestedSlug)) {
+          const byLegacyUsername = await supabase.from("profiles").select("*").ilike("username", requestedSlug + "-%").maybeSingle();
+          if (byLegacyUsername.error) profileError = byLegacyUsername.error;
+          data = byLegacyUsername.data as Record<string, unknown> | null;
+        }
+      } else if (auth.user) {
+        const ownProfile = await supabase.from("profiles").select("*").eq("id", auth.user.id).maybeSingle();
+        data = ownProfile.data as Record<string, unknown> | null;
+        profileError = ownProfile.error;
+      }
+
       if (!active) return;
       if (profileError) {
         setMessage("Не удалось загрузить профиль из Supabase: " + profileError.message);
       } else if (!data) {
-        setMessage("Для текущего аккаунта Discord не найдена строка профиля. ID аккаунта: " + auth.user.id);
+        setMessage(requestedSlug ? "Публичный профиль «" + requestedSlug + "» не найден или закрыт настройками приватности." : "Для текущего аккаунта Discord не найдена строка профиля.");
       }
       if (data) {
-        const p = data as ProfileRow;
-        setProfile(p); setDisplayName(p.display_name || p.username); setSlug(p.profile_slug || p.username);
+        const p = data as unknown as ProfileRow;
+        const owner = Boolean(auth.user && auth.user.id === p.id);
+        setProfile(p);
+        setEditing(false);
+        setDisplayName(p.display_name || p.username); setSlug(p.profile_slug || p.username);
         setBio(p.bio || ""); setCustomStatus(p.custom_status || "");
         const s = p.profile_settings || {};
         setBackground(String(s.background || "violet"));
@@ -112,7 +138,9 @@ export default function ProfilePage() {
         setShowLevel(p.show_level); setShowExperience(p.show_experience); setShowExactXp(p.show_exact_experience);
         setInvisible(p.invisible); setShowComments(p.show_comments); setCommentsAllowed(p.comments_allowed);
         setShowFriends(p.show_friends); setShowInventory(p.show_inventory); setAvatarPreview(p.avatar_url || "");
-      } else {
+        setIsOwner(owner);
+        if (!owner && !p.show_level) setMessage("Этот пользователь скрыл свой уровень.");
+      } else if (!requestedSlug && auth.user) {
         const meta = auth.user.user_metadata || {};
         const raw = String(meta.user_name || meta.preferred_username || meta.name || auth.user.email?.split("@")[0] || "player");
         const safe = slugFrom(raw) || "player";
@@ -129,7 +157,7 @@ export default function ProfilePage() {
   const selectedBackground = backgrounds.find((item) => item.id === background) || backgrounds[0];
 
   async function saveProfile() {
-    if (!supabase || !user) return;
+    if (!supabase || !user || !isOwner) return;
     const cleanSlug = slugFrom(slug);
     if (cleanSlug.length < 3) { setMessage("Адрес профиля должен содержать минимум 3 символа латиницей или цифрами."); return; }
     setSaving(true); setMessage("");
@@ -180,13 +208,13 @@ export default function ProfilePage() {
   }
 
   if (loading) return <main className="profile-page"><div className="profile-loading">Загружаем профиль…</div></main>;
-  if (!user) return <main className="profile-page"><section className="profile-login"><span className="profile-kicker">FREE STEAM GAME</span><h1>Твой игровой профиль</h1><p>Войди через Discord, чтобы настроить профиль, витрины и приватность.</p><a className="profile-primary" href={`${basePath}/login/`}>Войти через Discord ↗</a><a className="profile-back" href={`${basePath}/`}>← На главную</a></section></main>;
+  if (!profile && !user) return <main className="profile-page"><section className="profile-login"><span className="profile-kicker">FREE STEAM GAME</span><h1>Профиль не найден</h1><p>{message || "Войди через Discord, чтобы открыть свой профиль."}</p><a className="profile-primary" href={`${basePath}/login/`}>Войти через Discord ↗</a><a className="profile-back" href={`${basePath}/`}>← На главную</a></section></main>;
 
   return (
     <main className="profile-page">
-      <header className="profile-top"><a href={`${basePath}/`} className="profile-brand"><span>F</span> FREE STEAM <b>GAME</b></a><nav><a href={`${basePath}/`}>Главная</a><a href="#showcases">Витрины</a><button onClick={() => setEditing(!editing)}>{editing ? "Закрыть редактор" : "Настроить профиль"}</button></nav></header>
+      <header className="profile-top"><a href={`${basePath}/`} className="profile-brand"><span>F</span> FREE STEAM <b>GAME</b></a><nav><a href={`${basePath}/`}>Главная</a><a href="#showcases">Витрины</a>{isOwner ? <button onClick={() => setEditing(!editing)}>{editing ? "Закрыть редактор" : "Настроить профиль"}</button> : null}</nav></header>
       <div className="profile-content">
-        <div className="profile-heading"><div><span className="profile-kicker">ИГРОВОЙ ПРОФИЛЬ</span><h1>{displayName || "Игрок"}</h1><p>Твоя страница в сообществе Free Steam Game</p></div><div className="profile-actions"><button className="profile-secondary" onClick={() => setPreview(!preview)}>{preview ? "Вернуться к профилю" : "Предпросмотр"}</button><button className="profile-primary" onClick={saveProfile} disabled={saving}>{saving ? "Сохраняем…" : "Сохранить"}</button></div></div>
+        <div className="profile-heading"><div><span className="profile-kicker">ИГРОВОЙ ПРОФИЛЬ</span><h1>{displayName || "Игрок"}</h1><p>Твоя страница в сообществе Free Steam Game</p></div>{isOwner ? <div className="profile-actions"><button className="profile-secondary" onClick={() => setPreview(!preview)}>{preview ? "Вернуться к профилю" : "Предпросмотр"}</button><button className="profile-primary" onClick={saveProfile} disabled={saving}>{saving ? "Сохраняем…" : "Сохранить"}</button></div> : null}</div>
         <section className="profile-hero" style={backgroundImage ? { backgroundImage: `linear-gradient(90deg,rgba(8,7,15,.82),rgba(8,7,15,.18)),url("${backgroundImage}")`, backgroundSize: "cover", backgroundPosition: "center" } : {background: selectedBackground.style}}>
           <div className="profile-hero-overlay" />
           <div className="profile-avatar-wrap">{avatarPreview ? <img src={avatarPreview} alt="Аватар профиля" /> : <span>{(displayName || "И").slice(0,1).toUpperCase()}</span>}</div>
