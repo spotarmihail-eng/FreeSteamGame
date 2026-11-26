@@ -90,8 +90,13 @@ export default function ProfilePage() {
       if (!active) return;
       setUser(auth.user);
       if (!auth.user) { setLoading(false); return; }
-      const { data } = await supabase.from("profiles").select("*").eq("id", auth.user.id).maybeSingle();
+      const { data, error: profileError } = await supabase.from("profiles").select("*").eq("id", auth.user.id).maybeSingle();
       if (!active) return;
+      if (profileError) {
+        setMessage("Не удалось загрузить профиль из Supabase: " + profileError.message);
+      } else if (!data) {
+        setMessage("Для текущего аккаунта Discord не найдена строка профиля. ID аккаунта: " + auth.user.id);
+      }
       if (data) {
         const p = data as ProfileRow;
         setProfile(p); setDisplayName(p.display_name || p.username); setSlug(p.profile_slug || p.username);
