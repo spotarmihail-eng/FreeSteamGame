@@ -109,6 +109,18 @@ export default function ProfilePage() {
           if (byLegacyUsername.error) profileError = byLegacyUsername.error;
           data = byLegacyUsername.data as Record<string, unknown> | null;
         }
+        // RLS may hide a private profile from the slug lookup. If this is the
+        // signed-in owner's legacy URL, resolve their own row by auth user ID.
+        if (!data && !profileError && auth.user) {
+          const ownProfile = await supabase.from("profiles").select("*").eq("id", auth.user.id).maybeSingle();
+          if (ownProfile.error) profileError = ownProfile.error;
+          const ownData = ownProfile.data as Record<string, unknown> | null;
+          const ownUsername = String(ownData?.username || "").toLowerCase();
+          const ownSlug = String(ownData?.profile_slug || "").toLowerCase();
+          if (ownData && (ownSlug === requestedSlug || ownUsername === requestedSlug || ownUsername.startsWith(requestedSlug + "-"))) {
+            data = ownData;
+          }
+        }
       } else if (auth.user) {
         const ownProfile = await supabase.from("profiles").select("*").eq("id", auth.user.id).maybeSingle();
         data = ownProfile.data as Record<string, unknown> | null;
