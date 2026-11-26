@@ -22,11 +22,30 @@ const backgrounds = [
 ];
 
 function levelFromXp(total: number) {
-  let xp = Math.max(0, total);
-  let level = 0;
-  let step = 100;
-  while (xp >= step) { xp -= step; level += 1; if (level % 10 === 0) step += 100; }
-  return { level, current: xp, next: step, total: total - xp };
+  // Each block of 10 levels costs 1000, 2000, 3000... XP.
+  // Solve the completed blocks mathematically instead of looping once per level.
+  const xp = Math.max(0, Math.floor(Number.isFinite(total) ? total : 0));
+  let completedBlocks = Math.floor((Math.sqrt(1 + xp / 125) - 1) / 2);
+  let spent = 500 * completedBlocks * (completedBlocks + 1);
+
+  // Correct any floating-point boundary rounding.
+  while (spent > xp && completedBlocks > 0) {
+    completedBlocks -= 1;
+    spent = 500 * completedBlocks * (completedBlocks + 1);
+  }
+
+  let step = 100 * (completedBlocks + 1);
+  let remaining = xp - spent;
+  let levelsInBlock = Math.floor(remaining / step);
+  if (levelsInBlock > 9) levelsInBlock = 9;
+  let current = remaining - levelsInBlock * step;
+
+  return {
+    level: completedBlocks * 10 + levelsInBlock,
+    current,
+    next: step,
+    total: xp - current
+  };
 }
 
 function slugFrom(value: string) {
