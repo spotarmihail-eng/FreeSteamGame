@@ -232,7 +232,7 @@ export default function ProfilePage() {
         <section className="profile-hero" style={backgroundImage ? { backgroundImage: `linear-gradient(90deg,rgba(8,7,15,.82),rgba(8,7,15,.18)),url("${backgroundImage}")`, backgroundSize: "cover", backgroundPosition: "center" } : {background: selectedBackground.style}}>
           <div className="profile-hero-overlay" />
           <div className="profile-avatar-wrap">{avatarPreview ? <img src={avatarPreview} alt="Аватар профиля" /> : <span>{(displayName || "И").slice(0,1).toUpperCase()}</span>}</div>
-          <div className="profile-identity"><span className="profile-online"><i /> {invisible ? "Невидимка" : "В сети"}</span><h2>{displayName || "Игрок"}</h2><p>{customStatus || "Добро пожаловать в мой профиль FSG"}</p><small>Уровень {level.level} · {level.current} / {level.next} XP</small><small className="profile-debug-xp">Диагностика: владелец — {isOwner ? "да" : "нет"}; аккаунт — {user?.id || "не авторизован"}; профиль — {profile?.id || "не загружен"}; ник — {profile?.username || "нет"}; XP — {xp.toLocaleString("ru-RU")}; уровень — {level.level}</small></div>
+          <div className="profile-identity"><span className="profile-online"><i /> {invisible ? "Невидимка" : "В сети"}</span><h2>{displayName || "Игрок"}</h2><p>{customStatus || "Добро пожаловать в мой профиль FSG"}</p><small>Уровень {level.level} · {level.current} / {level.next} XP</small></div>
           <div className="profile-level-badge">✦<b>{level.level}</b><small>УРОВЕНЬ</small></div>
         </section>
         {!preview && editing ? <section className="profile-editor">
