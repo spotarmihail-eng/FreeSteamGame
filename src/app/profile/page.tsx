@@ -111,7 +111,8 @@ export default function ProfilePage() {
         }
         // RLS may hide a private profile from the slug lookup. If this is the
         // signed-in owner's legacy URL, resolve their own row by auth user ID.
-        if (!data && !profileError && auth.user) {
+        if (auth.user) {
+          // Prefer the signed-in user's exact profile row for legacy username URLs.
           const ownProfile = await supabase.from("profiles").select("*").eq("id", auth.user.id).maybeSingle();
           if (ownProfile.error) profileError = ownProfile.error;
           const ownData = ownProfile.data as Record<string, unknown> | null;
