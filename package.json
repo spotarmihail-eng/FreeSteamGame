@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "desktop:icon": "node scripts/create-desktop-icon.mjs",
-    "desktop:dist": "npm run desktop:icon && electron-builder --win nsis"
+    "desktop:dist": "npm run desktop:icon && electron-builder --win nsis --publish never"
   },
   "dependencies": {
     "next": "15.5.6",
