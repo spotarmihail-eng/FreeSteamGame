@@ -53,7 +53,8 @@ function slugFrom(value: string) {
 
 export default function ProfilePage() {
   const supabase = getSupabaseBrowserClient();
-  const [user, setUser] = useState<User | null>(null);\n  const [isOwner, setIsOwner] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
