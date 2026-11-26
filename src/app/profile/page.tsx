@@ -273,7 +273,7 @@ export default function ProfilePage() {
         <section className="profile-xp-card"><div><span className="profile-kicker">ПРОГРЕСС FSG</span><h2>Уровень {level.level}</h2><p>Опыт начисляется за создание значков из полных наборов карточек. Каждое создание — 100 XP, максимум 5 уровней одного значка.</p></div><div className="profile-xp-track"><div><span>{showExactXp?xp+" XP":showExperience?"Прогресс уровня":"Скрыто"}</span><b>{level.next-level.current} XP до следующего уровня</b></div><div className="profile-progress"><i style={{width:`${Math.min(100,level.current/level.next*100)}%`}} /></div></div></section>
         <section className="profile-share"><div><h3>Поделиться профилем</h3><p>Твоя ссылка: /u/{slug || "player"}</p></div><button className="profile-secondary" onClick={()=>{void navigator.clipboard?.writeText(`${window.location.origin}${basePath}/profile/?u=${encodeURIComponent(slug)}`);setMessage("Ссылка скопирована.");}}>Копировать ссылку ↗</button></section>
         {message?<p className="profile-message" role="status">{message}</p>:null}
-        <footer className="profile-footer">Free Steam Game is not affiliated with, endorsed by, or sponsored by Valve Corporation or Steam. All trademarks belong to their respective owners.</footer>
+        <footer className="profile-footer">Free Steam Game · Игровое сообщество</footer>
       </div>
     </main>
   );
