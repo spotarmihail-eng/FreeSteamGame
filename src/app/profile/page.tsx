@@ -118,7 +118,7 @@ export default function ProfilePage() {
           const ownData = ownProfile.data as Record<string, unknown> | null;
           const ownUsername = String(ownData?.username || "").toLowerCase();
           const ownSlug = String(ownData?.profile_slug || "").toLowerCase();
-          if (ownData && (ownSlug === requestedSlug || ownUsername === requestedSlug || ownUsername.startsWith(requestedSlug + "-"))) {
+          if (ownData && (ownSlug === requestedSlug || ownUsername === requestedSlug || ownUsername.startsWith(requestedSlug))) {
             data = ownData;
           }
         }
