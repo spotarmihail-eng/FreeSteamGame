@@ -135,7 +135,7 @@ export default function HomePage() {
             <div className="features-grid">{features.map((feature) => <article className="feature-card" key={feature.title}><span className="feature-icon">{feature.icon}</span><h3>{feature.title}</h3><p>{feature.text}</p></article>)}</div>
           </section>
 
-          <footer className="footer"><a className="footer-brand" href="#top"><Mark>F</Mark><span>FREE STEAM <b>GAME</b></span></a><p>Free Steam Game is not affiliated with, endorsed by, or sponsored by Valve Corporation or Steam. All trademarks belong to their respective owners.</p><span className="footer-copy">© {new Date().getFullYear()} Free Steam Game · Независимый проект сообщества</span></footer>
+          <footer className="footer"><a className="footer-brand" href="#top"><Mark>F</Mark><span>FREE STEAM <b>GAME</b></span></a><p>Игровое пространство для коллекций, достижений и новых открытий.</p><span className="footer-copy">© {new Date().getFullYear()} Free Steam Game · Независимый проект сообщества</span></footer>
         </div>
       </div>
     </main>
