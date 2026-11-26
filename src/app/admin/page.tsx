@@ -25,6 +25,7 @@ export default function AdminPage() {
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
+  const [xpAmount, setXpAmount] = useState("100");
 
   const load = useCallback(async () => {
     if (!supabase) { setMessage("Supabase не настроен."); setLoading(false); return; }
@@ -53,6 +54,24 @@ export default function AdminPage() {
     setBusy("");
   }
 
+  async function grantExperience(userId: string, mode: "xp" | "level") {
+    if (!supabase || role !== "owner") return;
+    const amount = Number(xpAmount);
+    if (mode === "xp" && (!Number.isSafeInteger(amount) || amount < 1 || amount > 1000000000)) {
+      setMessage("Укажи целое количество XP от 1 до 1 000 000 000.");
+      return;
+    }
+    setBusy(userId); setMessage("");
+    const { data, error } = await supabase.rpc("grant_fsg_user_xp", {
+      target_user_id: userId,
+      xp_amount: mode === "xp" ? amount : null,
+      level_count: mode === "level" ? 1 : null
+    });
+    if (error) setMessage("Не удалось изменить опыт: " + error.message);
+    else setMessage("Готово! Новый общий опыт пользователя: " + String(data) + " XP.");
+    setBusy("");
+  }
+
   const visibleUsers = users.filter((u) => [u.username, u.display_name || "", u.user_id].join(" ").toLowerCase().includes(search.toLowerCase()));
 
   return <main style={{minHeight:"100vh",background:"#090810",color:"#f5f2ff",padding:"32px clamp(16px,4vw,56px)",fontFamily:"Arial,sans-serif"}}>
@@ -64,18 +83,18 @@ export default function AdminPage() {
       </header>
       {message && <div role="status" style={{padding:14,marginBottom:18,border:"1px solid #57437a",borderRadius:10,color:"#ddd1ff",background:"#171126"}}>{message}</div>}
       <section style={{border:"1px solid #292239",background:"#12101d",borderRadius:16,padding:20}}>
-        <div style={{display:"flex",justifyContent:"space-between",gap:14,flexWrap:"wrap",alignItems:"center",marginBottom:18}}><div><h2 style={{margin:"0 0 5px"}}>Управление пользователями</h2><span style={{fontSize:12,color:"#9991a9"}}>Показаны последние 200 зарегистрированных профилей</span></div><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск по нику или ID" style={{background:"#090810",border:"1px solid #393047",borderRadius:9,padding:"11px 13px",color:"white",minWidth:230}} /></div>
+        <div style={{display:"flex",justifyContent:"space-between",gap:14,flexWrap:"wrap",alignItems:"center",marginBottom:18}}><div><h2 style={{margin:"0 0 5px"}}>Управление пользователями</h2><span style={{fontSize:12,color:"#9991a9"}}>Показаны последние 200 зарегистрированных профилей</span></div><div style={{display:"flex",gap:9,flexWrap:"wrap"}}>{role==="owner" && <label style={{fontSize:11,color:"#aaa2ba",display:"grid",gap:4}}>Сколько XP начислить<input type="number" min="1" max="1000000000" step="1" value={xpAmount} onChange={e=>setXpAmount(e.target.value)} style={{background:"#090810",border:"1px solid #393047",borderRadius:9,padding:"10px 12px",color:"white",width:150}} /></label>}<input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Поиск по нику или ID" style={{background:"#090810",border:"1px solid #393047",borderRadius:9,padding:"11px 13px",color:"white",minWidth:230,alignSelf:"end"}} /></div></div>
         {loading ? <p style={{color:"#aaa2ba"}}>Загружаем данные…</p> : visibleUsers.length === 0 ? <p style={{color:"#aaa2ba"}}>Пользователи не найдены.</p> : <div style={{display:"grid",gap:9}}>
           {visibleUsers.map(u=><div key={u.user_id} style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) auto",gap:12,alignItems:"center",padding:"13px 0",borderTop:"1px solid #292239"}}>
             <div style={{display:"flex",alignItems:"center",gap:12,minWidth:0}}>
               {u.avatar_url ? <img src={u.avatar_url} alt="" style={{width:42,height:42,borderRadius:12,objectFit:"cover"}}/> : <div style={{width:42,height:42,borderRadius:12,display:"grid",placeItems:"center",background:"#48316f",fontWeight:800}}>{(u.display_name||u.username).slice(0,1).toUpperCase()}</div>}
               <div style={{minWidth:0}}><strong style={{display:"block",overflow:"hidden",textOverflow:"ellipsis"}}>{u.display_name || u.username}</strong><span style={{fontSize:11,color:"#9991a9"}}>@{u.username} · {u.user_id.slice(0,8)}…</span></div>
             </div>
-            <div style={{display:"flex",alignItems:"center",gap:9,flexWrap:"wrap",justifyContent:"end"}}><span style={{fontSize:11,color:"#c4b5fd"}}>{roleLabels[u.role]}</span>{role==="owner" && u.role!=="owner" && <select aria-label={"Роль для "+u.username} disabled={busy===u.user_id} value={u.role} onChange={e=>void changeRole(u.user_id,e.target.value as "user"|"moderator"|"admin")} style={{background:"#201a30",color:"white",border:"1px solid #493a64",borderRadius:8,padding:9}}><option value="user">Пользователь</option><option value="moderator">Модератор</option><option value="admin">Администратор</option></select>}</div>
+            <div style={{display:"flex",alignItems:"center",gap:9,flexWrap:"wrap",justifyContent:"end"}}><span style={{fontSize:11,color:"#c4b5fd"}}>{roleLabels[u.role]}</span>{role==="owner" && <><button disabled={busy===u.user_id} onClick={()=>void grantExperience(u.user_id,"xp")} style={{background:"#39265b",color:"#fff",border:"1px solid #674a91",borderRadius:8,padding:"9px 11px",cursor:"pointer",opacity:busy===u.user_id?0.5:1}}>+{xpAmount || "0"} XP</button><button disabled={busy===u.user_id} onClick={()=>void grantExperience(u.user_id,"level")} style={{background:"#201a30",color:"#e4d8ff",border:"1px solid #493a64",borderRadius:8,padding:"9px 11px",cursor:"pointer",opacity:busy===u.user_id?0.5:1}}>+1 уровень</button>{u.role!=="owner" && <select aria-label={"Роль для "+u.username} disabled={busy===u.user_id} value={u.role} onChange={e=>void changeRole(u.user_id,e.target.value as "user"|"moderator"|"admin")} style={{background:"#201a30",color:"white",border:"1px solid #493a64",borderRadius:8,padding:9}}><option value="user">Пользователь</option><option value="moderator">Модератор</option><option value="admin">Администратор</option></select>}</>}</div>
           </div>)}
         </div>}
       </section>
-      <p style={{fontSize:11,color:"#777087",lineHeight:1.7,marginTop:18}}>Назначать и снимать роли может только владелец проекта. Все изменения фиксируются в журнале ролей. Удаление аккаунтов и изменение игровых данных здесь пока не включены.</p>
+      <p style={{fontSize:11,color:"#777087",lineHeight:1.7,marginTop:18}}>Роли и опыт пользователей может менять только владелец проекта. Начисления XP и уровней записываются в отдельный журнал. Владелец может управлять опытом любого пользователя, включая себя.</p>
     </div>
   </main>;
 }
