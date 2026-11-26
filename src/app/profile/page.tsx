@@ -34,11 +34,10 @@ function levelFromXp(total: number) {
     spent = 500 * completedBlocks * (completedBlocks + 1);
   }
 
-  let step = 100 * (completedBlocks + 1);
-  let remaining = xp - spent;
-  let levelsInBlock = Math.floor(remaining / step);
-  if (levelsInBlock > 9) levelsInBlock = 9;
-  let current = remaining - levelsInBlock * step;
+  const step = 100 * (completedBlocks + 1);
+  const remaining = xp - spent;
+  const levelsInBlock = Math.min(9, Math.floor(remaining / step));
+  const current = remaining - levelsInBlock * step;
 
   return {
     level: completedBlocks * 10 + levelsInBlock,
