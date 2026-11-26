@@ -79,6 +79,15 @@ begin
     raise exception 'Provide either xp_amount or level_count';
   end if;
 
+  select experience into old_xp
+  from public.profiles
+  where id = target_user_id
+  for update;
+
+  if not found then
+    raise exception 'Profile not found';
+  end if;
+
   if xp_amount is not null then
     if xp_amount < 1 or xp_amount > 1000000000 then
       raise exception 'XP amount must be between 1 and 1,000,000,000';
@@ -87,15 +96,6 @@ begin
   else
     if level_count < 1 or level_count > 100 then
       raise exception 'Level count must be between 1 and 100';
-    end if;
-
-    select experience into old_xp
-    from public.profiles
-    where id = target_user_id
-    for update;
-
-    if not found then
-      raise exception 'Profile not found';
     end if;
 
     remaining := old_xp;
@@ -117,17 +117,6 @@ begin
       end if;
       amount_to_add := amount_to_add + step_size;
     end loop;
-  end if;
-
-  if old_xp is null then
-    select experience into old_xp
-    from public.profiles
-    where id = target_user_id
-    for update;
-  end if;
-
-  if not found then
-    raise exception 'Profile not found';
   end if;
 
   if old_xp > 9000000000000000000 - amount_to_add then
