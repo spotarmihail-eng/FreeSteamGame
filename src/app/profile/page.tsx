@@ -15,6 +15,12 @@ type ProfileRow = {
 };
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+function levelEmblem(level: number) {
+  if (level >= 30) return "/img/misc/crystal.webp";
+  if (level >= 10) return "/img/misc/shield-gold.webp";
+  return "/img/misc/shield-pink.webp";
+}
 const backgrounds = [
   { id: "violet", name: "Фиолетовый космос", style: "linear-gradient(125deg,#24153f,#10101f 55%,#39205d)" },
   { id: "aurora", name: "Северное сияние", style: "linear-gradient(125deg,#102d38,#172044 55%,#44275e)" },
@@ -92,10 +98,6 @@ export default function ProfilePage() {
       const { data: auth } = await supabase.auth.getUser();
       if (!active) return;
       setUser(auth.user);
-      if (auth.user) {
-        const { data: roleData } = await supabase.rpc("get_my_fsg_role");
-        if (active && ["user", "moderator", "admin", "owner"].includes(String(roleData))) setMyRole(roleData as FsgRole);
-      }
 
       const requestedSlug = new URLSearchParams(window.location.search).get("u")?.trim().toLowerCase() || "";
       let data: Record<string, unknown> | null = null;
@@ -174,6 +176,15 @@ export default function ProfilePage() {
 
   const xp = Number(profile?.experience || 0);
   const level = useMemo(() => levelFromXp(xp), [xp]);
+  useEffect(() => {
+    if (!supabase || !isOwner) return;
+    let active = true;
+    supabase.rpc("get_my_fsg_role").then(({ data, error }) => {
+      if (active && !error && ["moderator", "admin", "owner"].includes(String(data))) setMyRole(data as FsgRole);
+    });
+    return () => { active = false; };
+  }, [supabase, isOwner]);
+
   const selectedBackground = backgrounds.find((item) => item.id === background) || backgrounds[0];
 
   async function saveProfile() {
@@ -238,8 +249,8 @@ export default function ProfilePage() {
         <section className="profile-hero" style={backgroundImage ? { backgroundImage: `linear-gradient(90deg,rgba(8,7,15,.82),rgba(8,7,15,.18)),url("${backgroundImage}")`, backgroundSize: "cover", backgroundPosition: "center" } : {background: selectedBackground.style}}>
           <div className="profile-hero-overlay" />
           <div className="profile-avatar-wrap">{avatarPreview ? <img src={avatarPreview} alt="Аватар профиля" /> : <span>{(displayName || "И").slice(0,1).toUpperCase()}</span>}</div>
-          <div className="profile-identity"><span className="profile-online"><i /> {invisible ? "Невидимка" : "В сети"}</span>{isOwner && myRole ? <RoleBadge role={myRole} /> : null}<h2>{displayName || "Игрок"}</h2><p>{customStatus || "Добро пожаловать в мой профиль FSG"}</p><small>Уровень {level.level} · {level.current} / {level.next} XP</small></div>
-          <div className="profile-level-badge">✦<b>{level.level}</b><small>УРОВЕНЬ</small></div>
+          <div className="profile-identity"><span className="profile-online"><i /> {invisible ? "Невидимка" : "В сети"}</span>{myRole ? <RoleBadge role={myRole} /> : null}<h2>{displayName || "Игрок"}</h2><p>{customStatus || "Добро пожаловать в мой профиль FSG"}</p><small>Уровень {level.level} · {level.current} / {level.next} XP</small></div>
+          <div className="profile-level-badge">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={`${basePath}${levelEmblem(level.level)}`} alt="" width={24} height={28} /><b>{level.level}</b><small>УРОВЕНЬ</small></div>
         </section>
         {!preview && editing ? <section className="profile-editor">
           <div className="profile-section-title"><div><span className="profile-kicker">РЕДАКТОР</span><h2>Настройка профиля</h2></div><span>Изменения сохраняются в Supabase</span></div>
@@ -277,7 +288,7 @@ export default function ProfilePage() {
           {textBlocks.filter(v=>v.body.trim()).map((block,i)=><article className="profile-text-preview" key={i}><h3>{block.title}</h3><p>{block.body}</p></article>)}
         </section>
         <section className="profile-xp-card"><div><span className="profile-kicker">ПРОГРЕСС FSG</span><h2>Уровень {level.level}</h2><p>Опыт начисляется за создание значков из полных наборов карточек. Каждое создание — 100 XP, максимум 5 уровней одного значка.</p></div><div className="profile-xp-track"><div><span>{showExactXp?xp+" XP":showExperience?"Прогресс уровня":"Скрыто"}</span><b>{level.next-level.current} XP до следующего уровня</b></div><div className="profile-progress"><i style={{width:`${Math.min(100,level.current/level.next*100)}%`}} /></div></div></section>
-        <section className="profile-share"><div><h3>Поделиться профилем</h3><p>Твоя ссылка: /u/{slug || "player"}</p></div><button className="profile-secondary" onClick={()=>{void navigator.clipboard?.writeText(`${window.location.origin}${basePath}/profile/?u=${encodeURIComponent(slug)}`);setMessage("Ссылка скопирована.");}}>Копировать ссылку ↗</button></section>
+        <section className="profile-share"><div><h3>Поделиться профилем</h3><p>Твоя ссылка: /profile/?u={slug || "player"}</p></div><button className="profile-secondary" onClick={()=>{void navigator.clipboard?.writeText(`${window.location.origin}${basePath}/profile/?u=${encodeURIComponent(slug)}`);setMessage("Ссылка скопирована.");}}>Копировать ссылку ↗</button></section>
         {message?<p className="profile-message" role="status">{message}</p>:null}
         <footer className="profile-footer">Free Steam Game · Игровое сообщество</footer>
       </div>
