@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { RoleBadge, type FsgRole } from "@/components/role-badge";
 
 type ProfileRow = {
   id: string; username: string; profile_slug: string | null; display_name: string | null;
@@ -55,6 +56,7 @@ export default function ProfilePage() {
   const supabase = getSupabaseBrowserClient();
   const [user, setUser] = useState<User | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  const [myRole, setMyRole] = useState<FsgRole | null>(null);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -90,6 +92,10 @@ export default function ProfilePage() {
       const { data: auth } = await supabase.auth.getUser();
       if (!active) return;
       setUser(auth.user);
+      if (auth.user) {
+        const { data: roleData } = await supabase.rpc("get_my_fsg_role");
+        if (active && ["user", "moderator", "admin", "owner"].includes(String(roleData))) setMyRole(roleData as FsgRole);
+      }
 
       const requestedSlug = new URLSearchParams(window.location.search).get("u")?.trim().toLowerCase() || "";
       let data: Record<string, unknown> | null = null;
@@ -232,7 +238,7 @@ export default function ProfilePage() {
         <section className="profile-hero" style={backgroundImage ? { backgroundImage: `linear-gradient(90deg,rgba(8,7,15,.82),rgba(8,7,15,.18)),url("${backgroundImage}")`, backgroundSize: "cover", backgroundPosition: "center" } : {background: selectedBackground.style}}>
           <div className="profile-hero-overlay" />
           <div className="profile-avatar-wrap">{avatarPreview ? <img src={avatarPreview} alt="Аватар профиля" /> : <span>{(displayName || "И").slice(0,1).toUpperCase()}</span>}</div>
-          <div className="profile-identity"><span className="profile-online"><i /> {invisible ? "Невидимка" : "В сети"}</span><h2>{displayName || "Игрок"}</h2><p>{customStatus || "Добро пожаловать в мой профиль FSG"}</p><small>Уровень {level.level} · {level.current} / {level.next} XP</small></div>
+          <div className="profile-identity"><span className="profile-online"><i /> {invisible ? "Невидимка" : "В сети"}</span>{isOwner && myRole ? <RoleBadge role={myRole} /> : null}<h2>{displayName || "Игрок"}</h2><p>{customStatus || "Добро пожаловать в мой профиль FSG"}</p><small>Уровень {level.level} · {level.current} / {level.next} XP</small></div>
           <div className="profile-level-badge">✦<b>{level.level}</b><small>УРОВЕНЬ</small></div>
         </section>
         {!preview && editing ? <section className="profile-editor">
