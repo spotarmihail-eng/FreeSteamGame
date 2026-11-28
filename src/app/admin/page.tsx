@@ -14,10 +14,6 @@ type StaffUser = {
   created_at: string;
 };
 
-const roleLabels: Record<StaffUser["role"], string> = {
-  user: "Пользователь", moderator: "Модератор", admin: "Администратор", owner: "Владелец"
-};
-
 export default function AdminPage() {
   const supabase = getSupabaseBrowserClient();
   const [role, setRole] = useState("");
