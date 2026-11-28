@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { RoleBadge } from "@/components/role-badge";
 
 type StaffUser = {
   user_id: string;
@@ -79,7 +80,7 @@ export default function AdminPage() {
       <Link href="/" style={{color:"#b9a2ff",textDecoration:"none"}}>← Вернуться в FSG</Link>
       <header style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap",margin:"28px 0"}}>
         <div><div style={{color:"#b9a2ff",fontSize:11,fontWeight:800,letterSpacing:".16em"}}>FREE STEAM GAME · CONTROL CENTER</div><h1 style={{fontSize:"clamp(30px,5vw,46px)",margin:"10px 0"}}>Панель управления</h1><p style={{color:"#aaa2ba",margin:0}}>Пользователи, роли и контроль доступа</p></div>
-        <div style={{border:"1px solid #443568",background:"#171126",borderRadius:12,padding:"12px 16px"}}><div style={{fontSize:10,color:"#aaa2ba"}}>ТВОЯ РОЛЬ</div><strong style={{color:"#c4b5fd"}}>{roleLabels[role as StaffUser["role"]] || role || "Проверка…"}</strong></div>
+        <div style={{border:"1px solid #443568",background:"#171126",borderRadius:12,padding:"12px 16px"}}><div style={{fontSize:10,color:"#aaa2ba"}}>ТВОЯ РОЛЬ</div>{role ? <RoleBadge role={role as StaffUser["role"]} /> : <strong style={{color:"#c4b5fd"}}>Проверка…</strong>}</div>
       </header>
       {message && <div role="status" style={{padding:14,marginBottom:18,border:"1px solid #57437a",borderRadius:10,color:"#ddd1ff",background:"#171126"}}>{message}</div>}
       <section style={{border:"1px solid #292239",background:"#12101d",borderRadius:16,padding:20}}>
@@ -90,7 +91,7 @@ export default function AdminPage() {
               {u.avatar_url ? <img src={u.avatar_url} alt="" style={{width:42,height:42,borderRadius:12,objectFit:"cover"}}/> : <div style={{width:42,height:42,borderRadius:12,display:"grid",placeItems:"center",background:"#48316f",fontWeight:800}}>{(u.display_name||u.username).slice(0,1).toUpperCase()}</div>}
               <div style={{minWidth:0}}><strong style={{display:"block",overflow:"hidden",textOverflow:"ellipsis"}}>{u.display_name || u.username}</strong><span style={{fontSize:11,color:"#9991a9"}}>@{u.username} · {u.user_id.slice(0,8)}…</span></div>
             </div>
-            <div style={{display:"flex",alignItems:"center",gap:9,flexWrap:"wrap",justifyContent:"end"}}><span style={{fontSize:11,color:"#c4b5fd"}}>{roleLabels[u.role]}</span>{role==="owner" && <><button disabled={busy===u.user_id} onClick={()=>void grantExperience(u.user_id,"xp")} style={{background:"#39265b",color:"#fff",border:"1px solid #674a91",borderRadius:8,padding:"9px 11px",cursor:"pointer",opacity:busy===u.user_id?0.5:1}}>+{xpAmount || "0"} XP</button><button disabled={busy===u.user_id} onClick={()=>void grantExperience(u.user_id,"level")} style={{background:"#201a30",color:"#e4d8ff",border:"1px solid #493a64",borderRadius:8,padding:"9px 11px",cursor:"pointer",opacity:busy===u.user_id?0.5:1}}>+1 уровень</button>{u.role!=="owner" && <select aria-label={"Роль для "+u.username} disabled={busy===u.user_id} value={u.role} onChange={e=>void changeRole(u.user_id,e.target.value as "user"|"moderator"|"admin")} style={{background:"#201a30",color:"white",border:"1px solid #493a64",borderRadius:8,padding:9}}><option value="user">Пользователь</option><option value="moderator">Модератор</option><option value="admin">Администратор</option></select>}</>}</div>
+            <div style={{display:"flex",alignItems:"center",gap:9,flexWrap:"wrap",justifyContent:"end"}}><RoleBadge role={u.role} />{role==="owner" && <><button disabled={busy===u.user_id} onClick={()=>void grantExperience(u.user_id,"xp")} style={{background:"#39265b",color:"#fff",border:"1px solid #674a91",borderRadius:8,padding:"9px 11px",cursor:"pointer",opacity:busy===u.user_id?0.5:1}}>+{xpAmount || "0"} XP</button><button disabled={busy===u.user_id} onClick={()=>void grantExperience(u.user_id,"level")} style={{background:"#201a30",color:"#e4d8ff",border:"1px solid #493a64",borderRadius:8,padding:"9px 11px",cursor:"pointer",opacity:busy===u.user_id?0.5:1}}>+1 уровень</button>{u.role!=="owner" && <select aria-label={"Роль для "+u.username} disabled={busy===u.user_id} value={u.role} onChange={e=>void changeRole(u.user_id,e.target.value as "user"|"moderator"|"admin")} style={{background:"#201a30",color:"white",border:"1px solid #493a64",borderRadius:8,padding:9}}><option value="user">Пользователь</option><option value="moderator">Модератор</option><option value="admin">Администратор</option></select>}</>}</div>
           </div>)}
         </div>}
       </section>
