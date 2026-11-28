@@ -67,6 +67,8 @@ export default function LoginPage() {
 
   return (
     <main className="auth-page">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="auth-bg" src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/img/brand/banner-1600.webp`} alt="" aria-hidden="true" decoding="async" />
       <a className="auth-back" href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/`}>← На главную</a>
       <section className="auth-card">
         <a className="auth-brand" href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/`}><span>F</span> FREE STEAM <b>GAME</b></a>

@@ -1,4 +1,7 @@
 import { AuthStatus } from "@/components/auth-status";
+import { Icon, type IconName } from "@/components/icons";
+
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const games = [
   { name: "Dota 2", genre: "MOBA · Экшен", appId: "570", initials: "D2", players: "Командная стратегия", color: "dota", label: "Популярная" },
@@ -6,23 +9,28 @@ const games = [
   { name: "Warframe", genre: "Экшен · RPG", appId: "230410", initials: "W", players: "Космические приключения", color: "warframe", label: "Приключение" }
 ];
 
-const navItems = [
-  { icon: "⌂", label: "Обзор", href: "#top", active: true },
-  { icon: "▦", label: "Каталог игр", href: "#games" },
-  { icon: "▤", label: "Библиотека", href: "#library" },
-  { icon: "✧", label: "Коллекции", href: "#collection" },
-  { icon: "♧", label: "Сообщество", href: "#community" },
-  { icon: "◎", label: "Мой профиль", href: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/profile/` }
+const navItems: { icon: IconName; label: string; href: string; active?: boolean }[] = [
+  { icon: "home", label: "Обзор", href: "#top", active: true },
+  { icon: "grid", label: "Каталог игр", href: "#games" },
+  { icon: "library", label: "Библиотека", href: "#library" },
+  { icon: "sparkles", label: "Коллекции", href: "#collection" },
+  { icon: "users", label: "Сообщество", href: "#community" },
+  { icon: "user", label: "Мой профиль", href: `${basePath}/profile/` }
 ];
 
-const features = [
-  { icon: "▤", title: "Твоя библиотека", text: "Собирай бесплатные игры и держи интересные проекты в одном месте." },
-  { icon: "♧", title: "Играй вместе", text: "Находи друзей, следи за игровым статусом и приглашай в совместные сессии." },
-  { icon: "✧", title: "Собирай коллекции", text: "Получай собственные карточки Free Steam Game и создавай игровые значки." }
+const features: { icon: IconName; title: string; text: string }[] = [
+  { icon: "library", title: "Твоя библиотека", text: "Собирай бесплатные игры и держи интересные проекты в одном месте." },
+  { icon: "users", title: "Играй вместе", text: "Находи друзей, следи за игровым статусом и приглашай в совместные сессии." },
+  { icon: "sparkles", title: "Собирай коллекции", text: "Получай собственные карточки Free Steam Game и создавай игровые значки." }
 ];
 
-function Mark({ children }: { children: React.ReactNode }) {
-  return <span className="brand-mark" aria-hidden="true">{children}</span>;
+function Mark() {
+  return (
+    <span className="brand-mark has-logo" aria-hidden="true">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={`${basePath}/img/brand/logo-128.webp`} alt="" width={38} height={38} />
+    </span>
+  );
 }
 
 export default function HomePage() {
@@ -30,7 +38,7 @@ export default function HomePage() {
     <main id="top" className="app-shell">
       <aside className="sidebar">
         <a className="brand" href="#top" aria-label="Free Steam Game — на главную">
-          <Mark>F</Mark>
+          <Mark />
           <span className="brand-name">FREE STEAM <b>GAME</b></span>
         </a>
 
@@ -38,7 +46,7 @@ export default function HomePage() {
         <nav className="side-nav" aria-label="Основная навигация">
           {navItems.map((item) => (
             <a key={item.label} href={item.href} className={item.active ? "side-link active" : "side-link"}>
-              <span className="side-icon" aria-hidden="true">{item.icon}</span>
+              <span className="side-icon" aria-hidden="true"><Icon name={item.icon} /></span>
               <span>{item.label}</span>
               {item.active ? <span className="nav-indicator" /> : null}
             </a>
@@ -73,22 +81,26 @@ export default function HomePage() {
               <div className="welcome-footnote"><span className="pulse-dot" /> Проект активно разрабатывается. Некоторые функции пока демонстрационные.</div>
             </div>
 
-            <div className="feature-panel">
-              <div className="feature-panel-glow" />
-              <div className="feature-panel-top"><span className="panel-kicker">ТВОЯ ИГРОВАЯ ВСЕЛЕННАЯ</span><span className="panel-orbit">✳</span></div>
-              <div className="orbit-art" aria-hidden="true">
-                <div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="orbit orbit-three" />
-                <div className="orbit-core"><span>F</span></div>
-                <span className="orbit-star star-one">✦</span><span className="orbit-star star-two">✧</span><span className="orbit-star star-three">✦</span>
-              </div>
-              <div className="feature-panel-bottom"><div><strong>Твоя история начинается здесь</strong><span>Один профиль для игрового сообщества</span></div><span className="arrow-round">↗</span></div>
+            <div className="hero-visual">
+              <div className="hero-visual-glow" aria-hidden="true" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`${basePath}/img/brand/banner-1600.webp`}
+                srcSet={`${basePath}/img/brand/banner-800.webp 800w, ${basePath}/img/brand/banner-1600.webp 1600w`}
+                sizes="(max-width: 900px) 100vw, 560px"
+                width={1600}
+                height={900}
+                alt="Free Steam Game — играй, собирай, развивайся"
+                decoding="async"
+                fetchPriority="high"
+              />
             </div>
           </section>
 
           <section className="stats-row" aria-label="О проекте">
-            <div className="stat-item"><span className="stat-icon">▦</span><div><strong>Игровой каталог</strong><span>Бесплатные игры и раздачи</span></div></div>
-            <div className="stat-item"><span className="stat-icon">✧</span><div><strong>Свои коллекции</strong><span>Карточки и значки по играм</span></div></div>
-            <div className="stat-item"><span className="stat-icon">♧</span><div><strong>Игровое сообщество</strong><span>Друзья и совместные сессии</span></div></div>
+            <div className="stat-item"><span className="stat-icon"><Icon name="grid" size={17} /></span><div><strong>Игровой каталог</strong><span>Бесплатные игры и раздачи</span></div></div>
+            <div className="stat-item"><span className="stat-icon"><Icon name="sparkles" size={17} /></span><div><strong>Свои коллекции</strong><span>Карточки и значки по играм</span></div></div>
+            <div className="stat-item"><span className="stat-icon"><Icon name="users" size={17} /></span><div><strong>Игровое сообщество</strong><span>Друзья и совместные сессии</span></div></div>
           </section>
 
           <section id="games" className="section-block">
@@ -112,7 +124,7 @@ export default function HomePage() {
           </section>
 
           <section id="library" className="library-banner">
-            <div className="library-symbol">▤</div>
+            <div className="library-symbol"><Icon name="library" size={22} /></div>
             <div className="library-copy"><div className="section-kicker">ТВОЯ БИБЛИОТЕКА</div><h2>Всё любимое — в одном месте</h2><p>Отмечай игры, сохраняй интересное и возвращайся к своим открытиям.</p></div>
             <span className="coming-tag">СКОРО</span>
           </section>
@@ -128,14 +140,14 @@ export default function HomePage() {
             </div>
           </section>
 
-          <section id="community" className="community-strip"><div className="community-icon">♧</div><div><h2>Играть интереснее вместе</h2><p>Друзья, статусы и приглашения появятся после подключения безопасного входа и серверной части.</p></div><span className="coming-tag">В РАЗРАБОТКЕ</span></section>
+          <section id="community" className="community-strip"><div className="community-icon"><Icon name="users" size={22} /></div><div><h2>Играть интереснее вместе</h2><p>Друзья, статусы и приглашения появятся после подключения безопасного входа и серверной части.</p></div><span className="coming-tag">В РАЗРАБОТКЕ</span></section>
 
           <section className="features-section">
             <div className="section-kicker">ОДНО ПРОСТРАНСТВО — МНОГО ВОЗМОЖНОСТЕЙ</div><h2>Создано для твоего игрового мира</h2>
-            <div className="features-grid">{features.map((feature) => <article className="feature-card" key={feature.title}><span className="feature-icon">{feature.icon}</span><h3>{feature.title}</h3><p>{feature.text}</p></article>)}</div>
+            <div className="features-grid">{features.map((feature) => <article className="feature-card" key={feature.title}><span className="feature-icon"><Icon name={feature.icon} size={17} /></span><h3>{feature.title}</h3><p>{feature.text}</p></article>)}</div>
           </section>
 
-          <footer className="footer"><a className="footer-brand" href="#top"><Mark>F</Mark><span>FREE STEAM <b>GAME</b></span></a><p>Игровое пространство для коллекций, достижений и новых открытий.</p><span className="footer-copy">© {new Date().getFullYear()} Free Steam Game · Независимый проект сообщества</span></footer>
+          <footer className="footer"><a className="footer-brand" href="#top"><Mark /><span>FREE STEAM <b>GAME</b></span></a><p>Игровое пространство для коллекций, достижений и новых открытий.</p><span className="footer-copy">© {new Date().getFullYear()} Free Steam Game · Независимый проект сообщества</span></footer>
         </div>
       </div>
     </main>
